@@ -89,6 +89,79 @@ class CPU:
     #----------------------------------------------------------------------------------------------------
 
 
+    # FETCH INSTRUCTION:---------------------------------------------------------------------------------
+    def fetch(self):
+        self.registers['ICR'] = self.registers['MDR'] # MDR -> ICR
+        self.registers['PC'] += 1                    #  Program Counter + 1
+    #----------------------------------------------------------------------------------------------------
+
+
+    # DECODE INSTRUCTION:--------------------------------------------------------------------------------
+    def decode(self,op):
+        if(op == 'SET'): 
+                #self.registers['MAR'] = int(self.registers['UC'].split()[1][1:]) 
+                #self.registers['ACC'] = int(self.registers['UC'].split()[2])
+                addrs = int(self.registers['UC'].split()[1][1:])
+                value = int(self.registers['UC'].split()[2])
+
+                self.SET(addrs,value) # EXECUTE INSTRUCTION
+                
+
+        if(op == 'LDR'): 
+            self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
+
+            self.LDR() # EXECUTE INSTRUCTION
+            
+
+        if(op == 'SHW'):
+
+            self.SHW(self.registers['UC'].split()[1]) # EXECUTE INSTRUCTION
+
+
+        if(op == 'ADD'):
+            if(self.registers['UC'].split()[2] == 'NULL'):
+                self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
+
+                self.ADD() # EXECUTE INSTRUCTION
+                
+            elif(self.registers['UC'].split()[3] == 'NULL'):
+                self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
+                self.registers['ACC'] = memory[self.registers['MAR']]
+                self.registers['MAR'] = int(self.registers['UC'].split()[2][1:])
+                 
+                self.ADD() # EXECUTE INSTRUCTION
+                
+            else:
+                self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
+                self.registers['ACC'] = memory[self.registers['MAR']]
+                self.registers['MAR'] = int(self.registers['UC'].split()[2][1:])
+
+                self.ADD() # EXECUTE INSTRUCTION
+                
+                memory[int(self.registers['UC'].split()[3][1:])] = self.registers['ACC']
+            
+
+        if(op == 'INC'):
+            self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
+            self.registers['ACC'] = memory[self.registers['MAR']]
+
+            self.INC() # EXECUTE INSTRUCTION
+
+
+        if(op == 'DEC'):
+            self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
+            self.registers['ACC'] = memory[self.registers['MAR']]
+
+            self.DEC() # EXECUTE INSTRUCTION
+            
+
+        if(op == 'STR'):
+            self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
+
+            self.STR() # EXECUTE INSTRUCTION
+    #----------------------------------------------------------------------------------------------------
+
+
 
     def execute_program(self, program):#----------------------------------------------------------------
 
@@ -99,7 +172,7 @@ class CPU:
 
 
         print("***********************************************")
-        print("Program initialized:")
+        print("Program initialized:\n")
             
         
         self.registers['PC'] = self.PROGRAM_MEMORY # Program Counter initialized where the first instruction is located in memory
@@ -109,69 +182,21 @@ class CPU:
         while(memory[self.registers['MAR']].split()[0] not in ['END', 'PAUSE']):
 
             self.registers['MDR'] = memory[self.registers['MAR']] # Content in memory of the address MAR -> MDR
-            self.registers['ICR'] = self.registers['MDR'] # MDR -> ICR
-
-            self.registers['PC'] += 1                    #  Program Counter + 1
+            
+            self.fetch()
+            
             self.registers['UC'] = self.registers['ICR'] # ICR -> UC
                 
 
             op =  self.registers['UC'].split()[0] # Lets see the operation to know how to continue
 
-            if(op == 'SET'): 
-                addrs = int(self.registers['UC'].split()[1][1:])
-                value = int(self.registers['UC'].split()[2])
-                self.SET(addrs,value)
-                
-
-            if(op == 'LDR'): 
-                self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
-                self.LDR()
-                
-
-            if(op == 'SHW'):
-                self.SHW(self.registers['UC'].split()[1])
-
-
-            if(op == 'ADD'):
-                if(self.registers['UC'].split()[2] == 'NULL'):
-                    self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
-                    self.ADD()
-                    
-                elif(self.registers['UC'].split()[3] == 'NULL'):
-                    self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
-                    self.registers['ACC'] = memory[self.registers['MAR']]
-                    self.registers['MAR'] = int(self.registers['UC'].split()[2][1:])
-                    self.ADD()
-                    
-                else:
-                    self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
-                    self.registers['ACC'] = memory[self.registers['MAR']]
-                    self.registers['MAR'] = int(self.registers['UC'].split()[2][1:])
-                    self.ADD()
-                    memory[int(self.registers['UC'].split()[3][1:])] = self.registers['ACC']
-                
-
-            if(op == 'INC'):
-               self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
-               self.registers['ACC'] = memory[self.registers['MAR']]
-               self.INC()
-
-
-            if(op == 'DEC'):
-                self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
-                self.registers['ACC'] = memory[self.registers['MAR']]
-                self.DEC()
-                
-
-            if(op == 'STR'):
-                self.registers['MAR'] = int(self.registers['UC'].split()[1][1:])
-                self.STR()
+            self.decode(op)
 
                 
             self.registers['MAR'] = self.registers['PC']
                                        
             
-        print("Program finalized.")
+        print("\nProgram finalized.")
         print("***********************************************\n")
         
     #----------------------------------------------------------------------------------------------------
